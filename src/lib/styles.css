@@ -1,0 +1,30 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+:root {
+    --sm-padding: 0.5rem;
+    --md-padding: 1rem;
+    --lg-padding: 2rem;
+    --icon-width: 3rem;
+
+    --bg-color: #0d0700;
+    --text-color: #E0C2A1;
+    --bg-sec-color: #130800;
+    --bg-accent-color: #886D4F;
+    --text-sec-color: #FCC688;
+
+    --border-radius: 0.25rem;
+    --border-color: #886D4F;
+    --border-accent-color: #FCC688;
+    --border-sec-color: #422C11;
+    --shadow-color: #130800;
+}
+
+body, input {
+    font-family: 'Inter', sans-serif;
+    color: var(--text-color);
+}
