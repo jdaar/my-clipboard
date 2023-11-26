@@ -29,6 +29,8 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@xyflow/svelte": "^0.0.28"
+		"@xyflow/svelte": "^0.0.28",
+		"firebase": "^10.6.0",
+		"zod": "^3.22.4"
 	}
 }

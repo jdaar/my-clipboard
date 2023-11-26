@@ -66,18 +66,6 @@
     object-fit: contain;
   }
 
-  img::-webkit-resizer {
-      border: 2px solid yellow;
-      background: blue;
-      box-shadow: 0 0 2px 5px red;
-      outline: 2px dashed green;
-
-      /*size does not work*/  
-      display:block;  
-      width: 150px !important;
-      height: 150px !important;
-  }
-
   header > input {
     border: none;
     outline: none;
@@ -101,6 +89,15 @@
     min-height: 20px;
     border: 1px solid var(--border-sec-color);
     background: linear-gradient(180deg, rgba(133, 110, 84, 0.00) 47.06%, rgba(133, 110, 84, 0.20) 97.06%), var(--bg-sec-color, #130800);
+  }
+
+  button:hover {
+    border: 1px solid var(--border-color);
+    color: var(--border-color);
+  }
+
+  button:hover > svg > path {
+    fill: var(--border-accent-color);
   }
 
   section  {
