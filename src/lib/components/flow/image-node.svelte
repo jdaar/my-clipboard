@@ -58,8 +58,8 @@
   }
 
   img {
-    max-width: 512px;
-    max-height: 512px;
+    max-width: 256px;
+    max-height: 256px;
     resize: both; 
     margin: 0;
     overflow: auto;

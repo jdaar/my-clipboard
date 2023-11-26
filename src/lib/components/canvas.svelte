@@ -38,6 +38,7 @@
 
 <section>
   <SvelteFlow {nodes} {edges} deleteKey="Del" {nodeTypes} proOptions={{hideAttribution: true}}>
+    <div class="offset">
     <Panel position="top-center">
       <aside>
         <button>1</button>
@@ -60,13 +61,21 @@
         </button>
       </aside>
     </Panel>
-    <Background />
     <Controls>
     </Controls>
+    </div>
+    <Background />
   </SvelteFlow>
 </section>
 
 <style>
+  .offset {
+    height: 90%;
+    width: 90%;
+    top: 5%;
+    left: 5%;
+    position: absolute;
+  }
   section {
     height: 100%;
     width: 100%;
@@ -77,10 +86,14 @@
     justify-content: center;
     align-items: center;
     height: 100%;
-    margin: 20px;
+  }
+
+  aside > button {
+    z-index: 999;
   }
 
   button {
+    display: block;
     border: none;
     width: var(--icon-width);
     height: var(--icon-width);
@@ -93,6 +106,7 @@
     background: linear-gradient(180deg, rgba(133, 110, 84, 0.00) 47.06%, rgba(133, 110, 84, 0.20) 97.06%), var(--bg-sec-color, #130800);
     padding: 0;
     margin: 0;
+    z-index: 999;
   }
 
   button > svg {

@@ -228,7 +228,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 10%;
+  height: 7%;
 }
 
 .svelte-flow__panel > button {
@@ -242,10 +242,6 @@
   justify-content: center;
   align-items: center;
   background: linear-gradient(180deg, rgba(133, 110, 84, 0.00) 47.06%, rgba(133, 110, 84, 0.20) 97.06%), var(--bg-sec-color, #130800);
-}
-
-.svelte-flow__panel > button > svg {
-  transform: scale(1.2);
 }
 
 .svelte-flow__panel > button:hover > svg {

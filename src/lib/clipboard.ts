@@ -52,9 +52,10 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
         const file_blob = await clipboard[0].getType('image/png')
         const file_download_url = await upload_file(`${filename}.png`, file_blob);
 
+
         canvas.nodes.set([...actual_nodes, {
             id: Math.random().toString(36).substring(7),
-            position: { x: 0, y: 0 },
+            position: { x: Math.random() * 100, y: Math.random() * 100 },
             type: 'image-node',
             data: { title: writable(filename), source: writable(file_download_url) }
         }])
