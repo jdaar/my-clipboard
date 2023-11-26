@@ -4,6 +4,7 @@
 	import ImageNode from '$lib/components/flow/image-node.svelte';
  
   import '$lib/flow-styles.css';
+	import { onMount } from 'svelte';
 
   const nodes = writable([
     {
@@ -24,6 +25,35 @@
   const nodeTypes = {
     'image-node': ImageNode
   };
+
+  onMount(() => {
+    let ctrlDown = false
+    window.addEventListener('keydown', (e) => {
+      if (e.code == 'ControlLeft') {
+        ctrlDown = true
+      }
+      if (e.code == 'KeyV' && ctrlDown) {
+        // @ts-ignore
+        navigator.permissions.query({ name: "clipboard-read" }).then((result) => {
+          if (result.state === "granted" || result.state === "prompt") {
+            window.navigator.clipboard.read().then(async (value) => {
+              $nodes = [...$nodes, {
+                id: Math.random().toString(36).substring(7),
+                position: { x: 0, y: 0 },
+                type: 'image-node',
+                data: { title: writable('Test'), source: writable('https://jasprilla.me/_app/immutable/assets/unhorario_2.2fba3cee.png') }
+              }]
+            })
+          }
+        });
+      }
+    })
+    window.addEventListener('keyup', (e) => {
+      if (e.code == 'ControlLeft') {
+        ctrlDown = false
+      }
+    })
+  });
 </script>
 
 <section>

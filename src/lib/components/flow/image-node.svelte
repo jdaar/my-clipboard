@@ -32,11 +32,9 @@
     </aside>
     <div></div>
   </header>
-  <div/>
   <footer>
     <img alt={$title} src={$source}>
   </footer>
-  <div/>
   <Handle type="source" position={Position.Right} on:connect on:connectstart on:connectend />
 </section>
 
@@ -57,6 +55,27 @@
     border-bottom: 1px solid var(--border-sec-color);
     background: linear-gradient(0deg, rgba(133, 110, 84, 0.20) 0.3%, rgba(133, 110, 84, 0.00) 60.73%), var(--bg-sec-color, #130800);
     box-shadow: 0px 4px 10px 0px #130800;
+  }
+
+  img {
+    max-width: 512px;
+    max-height: 512px;
+    resize: both; 
+    margin: 0;
+    overflow: auto;
+    object-fit: contain;
+  }
+
+  img::-webkit-resizer {
+      border: 2px solid yellow;
+      background: blue;
+      box-shadow: 0 0 2px 5px red;
+      outline: 2px dashed green;
+
+      /*size does not work*/  
+      display:block;  
+      width: 150px !important;
+      height: 150px !important;
   }
 
   header > input {
