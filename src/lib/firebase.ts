@@ -1,9 +1,9 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider, type UserCredential, type OAuthCredential } from "firebase/auth";
+import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getAnalytics, type Analytics } from "firebase/analytics";
-import { writable, type Writable } from "svelte/store";
 import { edges, nodes } from "$lib/store/canvas-store";
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
+import { authenticated_user } from "./store/user-store";
 
 const FIREBASE_CONFIG = {
     apiKey: "AIzaSyD9xXHYOaL0-uHEju31aRu2YkwqyKStXkg",
@@ -17,12 +17,6 @@ const FIREBASE_CONFIG = {
 
 let firebaseInstance: FirebaseApp | null = null;
 let firebaseAnalytics: Analytics | null = null;
-
-export let authenticated_user: Writable<{ credential: UserCredential, oauth_credential: OAuthCredential} | null> = writable(null);
-
-authenticated_user.subscribe((value) => {
-    console.log(value);
-})
 
 export function initialize_firebase() {
     if (firebaseInstance == null) {
@@ -48,26 +42,22 @@ export function login() {
         if (credential == null) return;
         authenticated_user.set({ credential: result, oauth_credential: credential });
     }).catch((error) => {
-        // Handle Errors here.
         const errorCode = error.code;
         const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.customData.email;
-        // The AuthCredential type that was used.
-        const credential = GoogleAuthProvider.credentialFromError(error);
-        // ...
+        console.log(errorCode, errorMessage);
     });
 }
 
 export function logout() {
     const auth = getAuth();
     auth.signOut().then(() => {
-        // Sign-out successful.
         authenticated_user.set(null);
         edges.set([]);
         nodes.set([]);
     }).catch((error) => {
-        // An error happened.
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode, errorMessage);
     });
 }
 
@@ -78,3 +68,4 @@ export async function upload_file(filename: string, file: Blob | File) {
     const snapshot = await uploadBytes(storageRef, file);
     return getDownloadURL(snapshot.ref);
 }
+

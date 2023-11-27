@@ -1,39 +1,17 @@
 <script lang="ts">
-  import { writable } from 'svelte/store';
-  import { SvelteFlow, Background, Controls, ControlButton, Panel } from '@xyflow/svelte';
+  import { SvelteFlow, Background, Controls, Panel } from '@xyflow/svelte';
 	import ImageNode from '$lib/components/flow/image-node.svelte';
  
   import '$lib/flow-styles.css';
-	import { onMount } from 'svelte';
-	import { authenticated_user, login, logout } from '$lib/firebase';
-	import { handle_clipboard_key } from '$lib/clipboard';
+	import { login, logout } from '$lib/firebase';
+  import { authenticated_user } from '$lib/store/user-store';
   import { edges, nodes } from '$lib/store/canvas-store';
+	import TextNode from './flow/text-node.svelte';
 
   const nodeTypes = {
-    'image-node': ImageNode
+    'image-node': ImageNode,
+    'text-node': TextNode
   };
-
-  onMount(() => {
-    let ctrlDown = false
-    window.addEventListener('keydown', (e) => {
-      if (e.code == 'ControlLeft') {
-        ctrlDown = true
-      }
-      if (e.code == 'KeyV' && ctrlDown) {
-        // @ts-ignore
-        navigator.permissions.query({ name: "clipboard-read" }).then((result) => {
-          if (result.state === "granted" || result.state === "prompt") {
-            window.navigator.clipboard.read().then((value) => handle_clipboard_key({nodes, edges}, value))
-          }
-        });
-      }
-    })
-    window.addEventListener('keyup', (e) => {
-      if (e.code == 'ControlLeft') {
-        ctrlDown = false
-      }
-    })
-  });
 </script>
 
 <section>
@@ -41,8 +19,6 @@
     <div class="offset">
     <Panel position="top-center">
       <aside>
-        <button>1</button>
-        <button>2</button>
       </aside>
       <aside>
         <button on:click={() => {
@@ -71,9 +47,9 @@
 <style>
   .offset {
     height: 90%;
-    width: 90%;
+    width: 95%;
     top: 5%;
-    left: 5%;
+    left: 2.5%;
     position: absolute;
   }
   section {
