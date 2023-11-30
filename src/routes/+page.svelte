@@ -5,6 +5,7 @@
 	import { edges, nodes } from '$lib/store/canvas-store';
 
     import '$lib/styles.css';
+    import '$lib/hljs-styles.css';
 	import { onMount } from 'svelte';
 
     onMount(() => {

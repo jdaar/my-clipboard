@@ -22,6 +22,8 @@ html, body {
     --border-accent-color: #FCC688;
     --border-sec-color: #422C11;
     --shadow-color: #130800;
+
+    --sm-font-size: 0.75rem;
 }
 
 body, input {

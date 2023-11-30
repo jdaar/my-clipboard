@@ -17,28 +17,28 @@
 <section>
   <SvelteFlow {nodes} {edges} deleteKey="Del" {nodeTypes} proOptions={{hideAttribution: true}}>
     <div class="offset">
-    <Panel position="top-center">
-      <aside>
-      </aside>
-      <aside>
-        <button on:click={() => {
-          if ($authenticated_user?.credential == null)
-            login()
-          else
-            logout()
-        }}>
-          {#if $authenticated_user?.credential == null}
-          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 24V21.3333H21.3333V2.66667H12V0H21.3333C22.0667 0 22.6947 0.261333 23.2173 0.784C23.74 1.30667 24.0009 1.93422 24 2.66667V21.3333C24 22.0667 23.7391 22.6947 23.2173 23.2173C22.6956 23.74 22.0676 24.0009 21.3333 24H12ZM9.33333 18.6667L7.5 16.7333L10.9 13.3333H0V10.6667H10.9L7.5 7.26667L9.33333 5.33333L16 12L9.33333 18.6667Z" fill="black"/>
-          </svg>
-          {:else}
-            <img src={$authenticated_user?.credential?.user.photoURL} alt="User"/>
-          {/if}
-        </button>
-      </aside>
-    </Panel>
-    <Controls>
-    </Controls>
+      <Panel position="top-center">
+        <aside>
+        </aside>
+        <aside>
+          <button on:click={() => {
+            if ($authenticated_user?.credential == null)
+              login()
+            else
+              logout()
+          }}>
+            {#if $authenticated_user?.credential == null}
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 24V21.3333H21.3333V2.66667H12V0H21.3333C22.0667 0 22.6947 0.261333 23.2173 0.784C23.74 1.30667 24.0009 1.93422 24 2.66667V21.3333C24 22.0667 23.7391 22.6947 23.2173 23.2173C22.6956 23.74 22.0676 24.0009 21.3333 24H12ZM9.33333 18.6667L7.5 16.7333L10.9 13.3333H0V10.6667H10.9L7.5 7.26667L9.33333 5.33333L16 12L9.33333 18.6667Z" fill="black"/>
+            </svg>
+            {:else}
+              <img src={$authenticated_user?.credential?.user.photoURL} alt="User"/>
+            {/if}
+          </button>
+        </aside>
+      </Panel>
+      <Controls>
+      </Controls>
     </div>
     <Background />
   </SvelteFlow>
