@@ -7,7 +7,7 @@
 <section>
 	<div></div>
 	<pre>
-    <code class="hljs">{@html content.code}</code>
+    <code class="hljs">{@html content.highlighted_code}</code>
     </pre>
 	<div></div>
 </section>

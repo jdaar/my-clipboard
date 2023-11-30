@@ -43,6 +43,7 @@ type _HandledTextLink = {
 export type HandledTextLink = OptionalObject<_HandledTextLink>;
 type _HandledTextCode = {
 	code: string;
+    highlighted_code: string;
 	language: string;
 };
 export type HandledTextCode = OptionalObject<_HandledTextCode>;

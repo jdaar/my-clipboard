@@ -1,4 +1,4 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { getAuth, signInWithPopup, GoogleAuthProvider, setPersistence, browserSessionPersistence } from 'firebase/auth';
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
 import { edges, nodes, object_to_writable_object } from '$lib/store/canvas-store';
@@ -9,19 +9,17 @@ import {
 	doc,
 	setDoc,
 	deleteDoc,
-	query,
 	collection,
 	getDocs
 } from 'firebase/firestore';
 import { is_user_logged_in_guard } from './guards/auth-guard';
 import { user as userStore } from './store/user-store';
 import { execute_plan, plan_sync } from './sync';
-import { last_sync_edges, last_sync_nodes, last_sync_timestamp } from './store/sync-store';
+import { last_sync_edges, last_sync_nodes } from './store/sync-store';
 import { is_array_equal, writable_to_value } from './utils';
 import type { Edge, Node } from '@xyflow/svelte';
 import type { Writable } from 'svelte/store';
 import { post_login } from './events/user';
-import type { Canvas } from './types';
 
 const FIREBASE_CONFIG = {
 	apiKey: 'AIzaSyD9xXHYOaL0-uHEju31aRu2YkwqyKStXkg',
@@ -85,6 +83,13 @@ export function initialize_firebase() {
 		execute_plan(sync_plan);
 		last_sync_edges.set(_edges);
 	});
+
+	const auth = getAuth();
+    setPersistence(auth, browserSessionPersistence).then(() => {
+        if (auth.currentUser == null) return;
+        userStore.set(auth.currentUser);
+        post_login();
+    })
 
 	return {
 		app: firebaseInstance,

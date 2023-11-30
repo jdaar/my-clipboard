@@ -5,6 +5,7 @@ import { z } from 'zod';
 const handled_text_content = z.union([
 	z.object({
 		code: z.string(),
+        highlighted_code: z.string(),
 		language: z.string()
 	}),
 	z.object({

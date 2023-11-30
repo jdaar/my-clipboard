@@ -37,7 +37,8 @@ const code_text_handler: TextHandler = {
 		return {
 			component: 'code-text',
 			data: {
-				code: highlighted.value,
+				code: text,
+                highlighted_code: highlighted.value,
 				language: highlighted.language
 			}
 		};
