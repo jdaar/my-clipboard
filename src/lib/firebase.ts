@@ -1,23 +1,36 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
-import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getAnalytics, type Analytics } from "firebase/analytics";
-import { edges, get_nodes_to_delete, nodes, object_to_writable_object } from "$lib/store/canvas-store";
-import { getStorage, ref, uploadBytes, type FirebaseStorage } from "firebase/storage";
-import { type Firestore, getFirestore } from "firebase/firestore";
-import { authenticated_user } from "./store/user-store";
-import type { Canvas } from '$lib/types';
+import { getAuth, signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { initializeApp, type FirebaseApp } from 'firebase/app';
+import { getAnalytics, type Analytics } from 'firebase/analytics';
+import { edges, nodes, object_to_writable_object } from '$lib/store/canvas-store';
+import { getStorage, ref, uploadBytes, type FirebaseStorage, deleteObject } from 'firebase/storage';
+import {
+	type Firestore,
+	getFirestore,
+	doc,
+	setDoc,
+	deleteDoc,
+	query,
+	collection,
+	getDocs
+} from 'firebase/firestore';
+import { is_user_logged_in_guard } from './guards/auth-guard';
+import { user as userStore } from './store/user-store';
+import { execute_plan, plan_sync } from './sync';
+import { last_sync_edges, last_sync_nodes, last_sync_timestamp } from './store/sync-store';
+import { is_array_equal, writable_to_value } from './utils';
 import type { Edge, Node } from '@xyflow/svelte';
-import { read_canvas } from '$lib/canvas';
-import { doc, setDoc, deleteDoc, collection, getDocs } from "firebase/firestore"; 
+import type { Writable } from 'svelte/store';
+import { post_login } from './events/user';
+import type { Canvas } from './types';
 
 const FIREBASE_CONFIG = {
-    apiKey: "AIzaSyD9xXHYOaL0-uHEju31aRu2YkwqyKStXkg",
-    authDomain: "my-clipboard-5bf72.firebaseapp.com",
-    projectId: "my-clipboard-5bf72",
-    storageBucket: "my-clipboard-5bf72.appspot.com",
-    messagingSenderId: "199142649925",
-    appId: "1:199142649925:web:7bf57e88a6bdab963ff32c",
-    measurementId: "G-EPREPQ4JE9"
+	apiKey: 'AIzaSyD9xXHYOaL0-uHEju31aRu2YkwqyKStXkg',
+	authDomain: 'my-clipboard-5bf72.firebaseapp.com',
+	projectId: 'my-clipboard-5bf72',
+	storageBucket: 'my-clipboard-5bf72.appspot.com',
+	messagingSenderId: '199142649925',
+	appId: '1:199142649925:web:7bf57e88a6bdab963ff32c',
+	measurementId: 'G-EPREPQ4JE9'
 };
 
 let firebaseInstance: FirebaseApp | null = null;
@@ -25,142 +38,174 @@ let firebaseAnalytics: Analytics | null = null;
 let firebaseStorage: FirebaseStorage | null = null;
 let firebaseFirestore: Firestore | null = null;
 
-let SYNC_TIMEOUT = true;
-
 export function initialize_firebase() {
-    if (firebaseInstance == null) {
-        firebaseInstance = initializeApp(FIREBASE_CONFIG);
-    }
-    if (firebaseAnalytics == null) {
-        firebaseAnalytics = getAnalytics(firebaseInstance);
-    }
-    if (firebaseStorage == null) {
-        firebaseStorage = getStorage(firebaseInstance);
-    }
-    if (firebaseFirestore == null) {
-        firebaseFirestore = getFirestore(firebaseInstance);
-    }
+	if (firebaseInstance == null) {
+		firebaseInstance = initializeApp(FIREBASE_CONFIG);
+	}
+	if (firebaseAnalytics == null) {
+		firebaseAnalytics = getAnalytics(firebaseInstance);
+	}
+	if (firebaseStorage == null) {
+		firebaseStorage = getStorage(firebaseInstance);
+	}
+	if (firebaseFirestore == null) {
+		firebaseFirestore = getFirestore(firebaseInstance);
+	}
 
+	nodes.subscribe((_nodes) => {
+		let diff_nodes = writable_to_value<Node[]>(last_sync_nodes);
+		let origin: 'data' | 'position' | null = null;
+		if (diff_nodes?.length != _nodes.length) {
+			origin = 'data';
+		} else {
+			diff_nodes?.forEach((node, idx) => {
+				const processed_node_data = Object.values(node.data).map((v) =>
+					writable_to_value<unknown>(v as Writable<unknown>)
+				);
+				const processed_prev_node_data = Object.values(_nodes[idx].data).map((v) =>
+					writable_to_value<unknown>(v as Writable<unknown>)
+				);
+				if (!is_array_equal(processed_node_data, processed_prev_node_data)) {
+					origin = 'data';
+				} else {
+					origin = 'position';
+				}
+			});
+		}
+		last_sync_nodes.set(_nodes);
+		if (origin == null) return;
+		let sync_plan = plan_sync(origin);
+		execute_plan(sync_plan);
+	});
+	edges.subscribe((_edges) => {
+		let diff_edges = writable_to_value<Edge[]>(last_sync_edges);
+		if (is_array_equal(diff_edges ?? [], _edges)) return;
 
-    nodes.subscribe((_nodes) => {
-        if (SYNC_TIMEOUT) {
-            const processed_canvas = read_canvas({ nodes, edges });
-            sync_write_canvas(processed_canvas);
-            SYNC_TIMEOUT = false;
-            setTimeout(() => {
-                SYNC_TIMEOUT = true;
-            }, 200000);
-        }
-    })
-    edges.subscribe((_edges) => {
-        const processed_canvas = read_canvas({ nodes, edges });
-        sync_write_canvas(processed_canvas);
-    })  
+		let sync_plan = plan_sync('data');
+		execute_plan(sync_plan);
+		last_sync_edges.set(_edges);
+	});
 
-    return {
-        app: firebaseInstance,
-        analytics: firebaseAnalytics,
-        storage: firebaseStorage,
-        db: firebaseFirestore
-    }
+	return {
+		app: firebaseInstance,
+		analytics: firebaseAnalytics,
+		storage: firebaseStorage,
+		db: firebaseFirestore
+	};
 }
 
 export function login() {
-    const auth = getAuth();
-    const provider = new GoogleAuthProvider();
+	const auth = getAuth();
+	const provider = new GoogleAuthProvider();
 
-    signInWithPopup(auth, provider)
-    .then((result) => {
-        const credential = GoogleAuthProvider.credentialFromResult(result);
-        if (credential == null) return;
-        authenticated_user.set({ credential: result, oauth_credential: credential });
-        sync_read_canvas();
-    }).catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
-    });
+	signInWithPopup(auth, provider)
+		.then(async (result) => {
+			userStore.set(result.user);
+			await post_login();
+		})
+		.catch((error) => {
+			const errorCode = error.code;
+			const errorMessage = error.message;
+			console.log(errorCode, errorMessage);
+		});
 }
 
 export function logout() {
-    const auth = getAuth();
-    auth.signOut().then(() => {
-        authenticated_user.set(null);
-        edges.set([]);
-        nodes.set([]);
-    }).catch((error) => {
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        console.log(errorCode, errorMessage);
-    });
+	const is_user_logged_in = is_user_logged_in_guard();
+	if (is_user_logged_in.status == 'error') {
+		throw new Error(is_user_logged_in.message ?? 'logout');
+	}
+
+	const auth = getAuth();
+	auth
+		.signOut()
+		.then(() => {
+			userStore.set(null);
+			edges.set([]);
+			nodes.set([]);
+		})
+		.catch((error) => {
+			const errorCode = error.code;
+			const errorMessage = error.message;
+			console.log(errorCode, errorMessage);
+		});
 }
 
 export async function upload_file(filename: string, file: Blob | File): Promise<string> {
-    if (firebaseStorage == null) return '';
+	if (firebaseStorage == null) return '';
 
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (user == null) return '';
+	const is_user_logged_in = is_user_logged_in_guard();
+	if (is_user_logged_in.status == 'error') {
+		throw new Error(is_user_logged_in.message ?? 'upload_file');
+	}
 
-    const rootDirRef = ref(firebaseStorage, `users/${user.uid}/${filename}`);
+	const auth = getAuth();
+	const user = auth.currentUser;
 
-    const snapshot = await uploadBytes(rootDirRef, file);
-    return snapshot.ref.fullPath;
+	const rootDirRef = ref(firebaseStorage, `users/${user?.uid}/${filename}`);
+
+	const snapshot = await uploadBytes(rootDirRef, file);
+	return snapshot.ref.fullPath;
 }
 
-export async function sync_write_canvas(canvas: Canvas) {
-    if (firebaseFirestore == null) return;
-    if (canvas == null) return;
+export async function delete_file(filepath: string) {
+	if (firebaseStorage == null) return '';
 
-    const deletion_queue = get_nodes_to_delete()
+	const is_user_logged_in = is_user_logged_in_guard();
+	if (is_user_logged_in.status == 'error') {
+		throw new Error(is_user_logged_in.message ?? 'upload_file');
+	}
 
-    try {
-        while (deletion_queue.edges.length > 0) {
-            const doc_to_delete = doc(firebaseFirestore, `edges/${deletion_queue.edges.pop()}`)
-            await deleteDoc(doc_to_delete);
-        }
-        for (let idx = 0; idx < (canvas?.edges.length ?? 0); idx++) {
-            if (!deletion_queue.edges.includes(canvas?.edges[idx].id) && canvas?.edges[idx]) {
-                const new_doc = doc(firebaseFirestore, "edges", canvas.edges[idx].id);
-                await setDoc(new_doc, canvas?.edges[idx]);
-            }
-        }
-    } catch (e) {
-        console.error("Error adding document: ", e);
-    }
-    try {
-        while (deletion_queue.nodes.length > 0) {
-            const doc_to_delete = doc(firebaseFirestore, `nodes/${deletion_queue.nodes.pop()}`);
-            await deleteDoc(doc_to_delete);
-        }
-        for (let idx = 0; idx < (canvas?.nodes.length ?? 0); idx++) {
-            if (!deletion_queue.nodes.includes(canvas?.nodes[idx].id) && canvas?.nodes[idx]) {
-                const new_doc = doc(firebaseFirestore, "nodes", canvas.nodes[idx].id);
-                await setDoc(new_doc, canvas.nodes[idx]);
-            }
-        }
-    } catch (e) {
-        console.error("Error adding document: ", e);
-    }
+	const rootDirRef = ref(firebaseStorage, filepath);
+
+    await deleteObject(rootDirRef);
 }
 
-export async function sync_read_canvas() {
-    if (firebaseStorage == null) return '';
-    if (firebaseFirestore == null) return '';
+export async function upsert_document(type: 'node' | 'edge', document: Node | Edge) {
+	if (firebaseFirestore == null) return;
 
-    const auth = getAuth();
-    const user = auth.currentUser;
-    if (user == null) return '';
+	const is_user_logged_in = is_user_logged_in_guard();
+	if (is_user_logged_in.status == 'error') {
+		throw new Error(is_user_logged_in.message ?? 'upsert_document');
+	}
 
-    const nodes_collection = collection(firebaseFirestore, "nodes");
-    const nodes_snapshot = await getDocs(nodes_collection);
-    const nodes_list: Node[] = nodes_snapshot.docs.map(doc => {
-        const value = doc.data()
-        return {...value, data: object_to_writable_object(value.data)} as Node
-    });
-    nodes.set(nodes_list);
-    const edges_collection = collection(firebaseFirestore, "edges");
-    const edges_snapshot = await getDocs(edges_collection);
-    const edges_list: Edge[] = edges_snapshot.docs.map(doc => doc.data() as Edge);
-    edges.set(edges_list);
+	const new_doc = doc(firebaseFirestore, `${type}/${document.id}`);
+	await setDoc(new_doc, document);
+}
+
+export async function delete_document(type: 'node' | 'edge', document_id: string) {
+	if (firebaseFirestore == null) return;
+
+	const is_user_logged_in = is_user_logged_in_guard();
+	if (is_user_logged_in.status == 'error') {
+		throw new Error(is_user_logged_in.message ?? 'delete_document');
+	}
+
+	const doc_to_delete = doc(firebaseFirestore, `${type}/${document_id}`);
+	await deleteDoc(doc_to_delete);
+}
+
+export async function retrieve_canvas() {
+	if (firebaseFirestore == null)
+		return {
+			nodes: [],
+			edges: []
+		};
+
+	const is_user_logged_in = is_user_logged_in_guard();
+	if (is_user_logged_in.status == 'error') {
+		throw new Error(is_user_logged_in.message ?? 'upload_file');
+	}
+
+	const nodes_collection = collection(firebaseFirestore, 'node');
+	const nodes_snapshot = await getDocs(nodes_collection);
+	const nodes_list: Node[] = nodes_snapshot.docs.map((doc) => {
+		const value = doc.data();
+		return { ...value, data: object_to_writable_object(value.data) } as Node;
+	});
+	nodes.set(nodes_list);
+	const edges_collection = collection(firebaseFirestore, 'edge');
+	const edges_snapshot = await getDocs(edges_collection);
+	const edges_list: Edge[] = edges_snapshot.docs.map((doc) => doc.data() as Edge);
+	edges.set(edges_list);
 }

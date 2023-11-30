@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { HandledTextLink } from "$lib/types";
+	import type { HandledTextLink } from '$lib/types';
 
-    export let content: HandledTextLink;
+	export let content: HandledTextLink;
 </script>
 
 <p>link</p>

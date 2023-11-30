@@ -1,4 +1,4 @@
-import { writable, type Writable } from 'svelte/store';
-import type { AuthenticatedUser } from '$lib/types';
+import type { User } from 'firebase/auth';
+import { writable } from 'svelte/store';
 
-export let authenticated_user: Writable<AuthenticatedUser | null> = writable(null);
+export const user = writable<User | null>(null);
