@@ -16,7 +16,7 @@
 </script>
 
 <section>
-	<SvelteFlow nodes={nodes} edges={edges} deleteKey="Del" {nodeTypes} proOptions={{ hideAttribution: true }}>
+	<SvelteFlow {nodes} {edges} deleteKey="Del" {nodeTypes} proOptions={{ hideAttribution: true }}>
 		<div class="offset">
 			<Panel position="top-center">
 				<aside></aside>
@@ -43,20 +43,34 @@
 			<Panel position="bottom-right">
 				<aside></aside>
 				<aside>
-				<button class:selected_btn={$selected_tab == null} on:click={() => {$selected_tab = null;}}>all</button>
-				{#each Object.keys($tabs) as tab}
-				<button class="tab" class:selected_btn={$selected_tab == tab} on:click={() => {$selected_tab = tab;}}>{$tabs[tab].label.slice(0,7)}</button>
-				{/each}
-				<button on:click={() => {
-					const id = uuid();
-					$tabs = {...$tabs, 
-						[id]: {
-							id,
-							label: id,
-							nodes: [],
-						}
-					}
-				}}>+</button>
+					<button
+						class:selected_btn={$selected_tab == null}
+						on:click={() => {
+							$selected_tab = null;
+						}}>all</button
+					>
+					{#each Object.keys($tabs) as tab}
+						<button
+							class="tab"
+							class:selected_btn={$selected_tab == tab}
+							on:click={() => {
+								$selected_tab = tab;
+							}}>{$tabs[tab].label.slice(0, 7)}</button
+						>
+					{/each}
+					<button
+						on:click={() => {
+							const id = uuid();
+							$tabs = {
+								...$tabs,
+								[id]: {
+									id,
+									label: id,
+									nodes: []
+								}
+							};
+						}}>+</button
+					>
 				</aside>
 			</Panel>
 			<Controls></Controls>
@@ -68,7 +82,7 @@
 <style>
 	.selected_btn {
 		background-color: var(--border-color);
-		color: var(--bg-color)
+		color: var(--bg-color);
 	}
 	.tab {
 		min-width: 80px;
@@ -88,7 +102,7 @@
 	aside {
 		display: flex;
 		height: 100%;
-    width: 100%;
+		width: 100%;
 		z-index: 1;
 	}
 

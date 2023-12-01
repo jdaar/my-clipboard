@@ -73,7 +73,7 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 		const file_blob = await clipboard[0].getType('image/png');
 		const file_download_url = await upload_file(`${filename}.png`, file_blob);
 
-		canvas.nodes.update(actual_nodes => [
+		canvas.nodes.update((actual_nodes) => [
 			...actual_nodes,
 			{
 				id,
@@ -82,16 +82,16 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 				data: { title: writable(filename), source: writable(file_download_url) }
 			}
 		]);
-		tabs.update(actual_tabs => {
+		tabs.update((actual_tabs) => {
 			const actual_tab = get(selected_tab) ?? null;
-			if (actual_tab == null) return actual_tabs
+			if (actual_tab == null) return actual_tabs;
 			return {
 				...actual_tabs,
 				[actual_tab]: {
 					...actual_tabs[actual_tab],
 					nodes: [...actual_tabs[actual_tab].nodes, id]
 				}
-			}
+			};
 		});
 	} else if (clipboard[0].types.filter((v) => v.includes('text/plain')).length > 0) {
 		const id = uuid();
@@ -99,7 +99,7 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 
 		const handled_content = await handle_text(await content.text());
 
-		canvas.nodes.update(actual_nodes => [
+		canvas.nodes.update((actual_nodes) => [
 			...actual_nodes,
 			{
 				id,
@@ -112,7 +112,7 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 				}
 			}
 		]);
-		tabs.update(actual_tabs => {
+		tabs.update((actual_tabs) => {
 			const actual_tab = get(selected_tab) ?? null;
 			if (actual_tab == null) return actual_tabs;
 			return {
@@ -121,7 +121,7 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 					...actual_tabs[actual_tab],
 					nodes: [...actual_tabs[actual_tab].nodes, id]
 				}
-			}
+			};
 		});
 	}
 }

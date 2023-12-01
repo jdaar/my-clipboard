@@ -7,7 +7,13 @@ import {
 } from 'firebase/auth';
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
-import { edges, nodes, object_to_writable_object, selected_tab, tabs } from '$lib/store/canvas-store';
+import {
+	edges,
+	nodes,
+	object_to_writable_object,
+	selected_tab,
+	tabs
+} from '$lib/store/canvas-store';
 import { getStorage, ref, uploadBytes, type FirebaseStorage, deleteObject } from 'firebase/storage';
 import {
 	type Firestore,
@@ -178,7 +184,10 @@ export async function delete_file(filepath: string) {
 	await deleteObject(rootDirRef);
 }
 
-export async function upsert_document(type: 'node' | 'edge' | 'tab', document: Node | Edge | CanvasTab) {
+export async function upsert_document(
+	type: 'node' | 'edge' | 'tab',
+	document: Node | Edge | CanvasTab
+) {
 	if (firebaseFirestore == null) return;
 
 	const is_user_logged_in = is_user_logged_in_guard();
@@ -227,6 +236,8 @@ export async function retrieve_canvas() {
 	edges.set(edges_list);
 	const tabs_collection = collection(firebaseFirestore, 'tab');
 	const tabs_snapshot = await getDocs(tabs_collection);
-	const tabs_obj = tabs_snapshot.docs.map((doc) => doc.data() as CanvasTab).reduce((acc, tab) => ({...acc, [tab.id]: tab}), {} as {[x: string]: CanvasTab});
+	const tabs_obj = tabs_snapshot.docs
+		.map((doc) => doc.data() as CanvasTab)
+		.reduce((acc, tab) => ({ ...acc, [tab.id]: tab }), {} as { [x: string]: CanvasTab });
 	tabs.set(tabs_obj);
 }

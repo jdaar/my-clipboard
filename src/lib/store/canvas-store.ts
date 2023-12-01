@@ -6,42 +6,39 @@ import { get, writable, type Writable } from 'svelte/store';
 export const nodes: Writable<Node[]> = writable([]);
 export const edges: Writable<Edge[]> = writable([]);
 export const selected_tab: Writable<string | null> = writable(null);
-export const tabs: Writable<{[x: string]: CanvasTab}> = writable({});
+export const tabs: Writable<{ [x: string]: CanvasTab }> = writable({});
 
 tabs.subscribe((_tabs) => {
 	if (Object.keys(_tabs).length == 0) {
 		const new_tab = create_canvas_tab();
-		tabs.set({[new_tab.id]: new_tab});
+		tabs.set({ [new_tab.id]: new_tab });
 		selected_tab.set(new_tab.id);
 	}
-})
+});
 
 selected_tab.subscribe((selected_tab) => {
 	nodes.update((value) => {
 		return value.map((node) => {
-			if (selected_tab == null)
-				node.hidden = false;
-			else
-				node.hidden = !get(tabs)[selected_tab].nodes.includes(node.id);
+			if (selected_tab == null) node.hidden = false;
+			else node.hidden = !get(tabs)[selected_tab].nodes.includes(node.id);
 			return node;
-		})
-	})
+		});
+	});
 	edges.update((value) => {
 		return value.map((edge) => {
-			if (selected_tab == null) 
-				edge.hidden = false;
+			if (selected_tab == null) edge.hidden = false;
 			else
-				edge.hidden = !get(tabs)[selected_tab].nodes.includes(edge.source) || !get(tabs)[selected_tab ?? ''].nodes.includes(edge.target);
+				edge.hidden =
+					!get(tabs)[selected_tab].nodes.includes(edge.source) ||
+					!get(tabs)[selected_tab ?? ''].nodes.includes(edge.target);
 			return edge;
-		})
-	})
-})
-
-// subscribe to nodes and edges to update tabs
+		});
+	});
+});
 
 export function create_canvas_tab(): CanvasTab {
-	const id = uuid()
-	selected_tab.set(id)
+	const id = uuid();
+	selected_tab.set(id);
 	return {
 		id,
 		label: id,
@@ -58,6 +55,8 @@ export function object_to_writable_object(object: { [x: string]: unknown }) {
 }
 
 export async function delete_node(node_id: string) {
-	nodes.update(actual_nodes => actual_nodes.filter((node) => !(node.id == node_id)));
-	edges.update(actual_edges => actual_edges.filter((edge) => !(edge.source == node_id || edge.target == node_id)));
+	nodes.update((actual_nodes) => actual_nodes.filter((node) => !(node.id == node_id)));
+	edges.update((actual_edges) =>
+		actual_edges.filter((edge) => !(edge.source == node_id || edge.target == node_id))
+	);
 }

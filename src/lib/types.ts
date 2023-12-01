@@ -33,7 +33,7 @@ export type CanvasTab = {
 	id: string;
 	label: string;
 	nodes: string[];
-}
+};
 
 export type SyncPlanCanvas = {
 	nodes: { [x: string]: Node };
