@@ -29,6 +29,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@sveltejs/adapter-static": "^2.0.3",
 		"@xyflow/svelte": "^0.0.28",
 		"firebase": "^10.6.0",
 		"highlight.js": "^11.9.0",
