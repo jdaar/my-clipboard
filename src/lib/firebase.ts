@@ -7,13 +7,7 @@ import {
 } from 'firebase/auth';
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
-import {
-	edges,
-	nodes,
-	object_to_writable_object,
-	selected_tab,
-	tabs
-} from '$lib/store/canvas-store';
+import { edges, nodes, object_to_writable_object, tabs } from '$lib/store/canvas-store';
 import { getStorage, ref, uploadBytes, type FirebaseStorage, deleteObject } from 'firebase/storage';
 import {
 	type Firestore,
@@ -96,7 +90,7 @@ export function initialize_firebase() {
 		execute_plan(sync_plan);
 		last_sync_edges.set(_edges);
 	});
-	tabs.subscribe((_tabs) => {
+	tabs.subscribe(() => {
 		const sync_plan = plan_sync('data');
 		execute_plan(sync_plan);
 	});

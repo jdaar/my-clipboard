@@ -1,6 +1,3 @@
-import type { Writable } from 'svelte/store';
-import type { Optional } from './types';
-
 export function uuid(): string {
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	return `${1e7}-${1e3}-${4e3}-${8e3}-${1e11}`.replace(/[018]/g, (c: any) =>

@@ -1,4 +1,4 @@
-import type { Canvas, CanvasTab, WritableCanvas } from '$lib/types';
+import type { Canvas, WritableCanvas } from '$lib/types';
 import type { Edge, Node } from '@xyflow/svelte';
 import { z } from 'zod';
 import { get } from 'svelte/store';
@@ -58,9 +58,9 @@ export function generate_node_title() {
 }
 
 export function read_canvas(canvas: WritableCanvas): Canvas {
-	let actual_nodes: Node[] = get(canvas.nodes) ?? [];
-	let actual_edges: Edge[] = get(canvas.edges) ?? [];
-	let actual_tabs = get(canvas.tabs) ?? [];
+	const actual_nodes: Node[] = get(canvas.nodes) ?? [];
+	const actual_edges: Edge[] = get(canvas.edges) ?? [];
+	const actual_tabs = get(canvas.tabs) ?? [];
 
 	const processed_canvas = {
 		nodes: actual_nodes.map((node) => {

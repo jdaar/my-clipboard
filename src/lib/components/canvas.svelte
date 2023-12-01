@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { SvelteFlow, Background, Controls, Panel, type Node, type Edge } from '@xyflow/svelte';
+	import { SvelteFlow, Background, Controls, Panel } from '@xyflow/svelte';
 	import ImageNode from '$lib/components/flow/image-node.svelte';
 
 	import '$lib/flow-styles.css';
