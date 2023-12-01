@@ -223,7 +223,6 @@
 .svelte-flow__panel {
 	position: absolute;
 	z-index: 5;
-	width: 100%;
 	left: 0;
 	display: flex;
 	justify-content: center;
@@ -267,17 +266,32 @@
 
 .svelte-flow__panel.top {
 	display: flex;
-	justify-content: space-between;
+	justify-content: left;
+	align-items: left;
+	width: 100%;
 	top: 0;
+}
+
+.svelte-flow__panel.top > aside {
+	justify-content: right;
+	align-items: right;
 }
 .svelte-flow__panel.bottom {
 	bottom: 0;
 }
 .svelte-flow__panel.left {
 	left: 0;
+	justify-content: left;
+	align-items: left;
 }
 .svelte-flow__panel.right {
 	right: 0;
+	justify-content: right;
+	align-items: right;
+}
+.svelte-flow__panel.right > aside {
+	justify-content: right;
+	align-items: right;
 }
 .svelte-flow__panel.center {
 	left: 50%;

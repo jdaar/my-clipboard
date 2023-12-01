@@ -1,15 +1,17 @@
 import type { Edge, Node } from '@xyflow/svelte';
-import { edges, nodes } from './store/canvas-store';
-import { is_array_equal, writable_to_value } from './utils';
+import { edges, nodes, tabs } from './store/canvas-store';
+import { is_array_equal } from './utils';
 import type { SyncPlan, SyncPlanCanvas } from './types';
 import { accumulated_sync_plan, last_sync_state, last_sync_timestamp } from './store/sync-store';
 import { read_canvas } from './canvas';
 import { delete_document, upsert_document } from './firebase';
+import { get } from 'svelte/store';
 
 export function get_sync_canvas(): SyncPlanCanvas {
 	const processed_canvas = read_canvas({
 		nodes,
-		edges
+		edges,
+		tabs
 	});
 
 	const actual_canvas: SyncPlanCanvas = {
@@ -26,7 +28,8 @@ export function get_sync_canvas(): SyncPlanCanvas {
 				return acc;
 			},
 			{} as { [x: string]: Edge }
-		)
+		),
+		tabs: processed_canvas.tabs
 	};
 
 	return actual_canvas;
@@ -42,10 +45,14 @@ export function plan_sync(origin: 'data' | 'position'): SyncPlan {
 		edges: {
 			upsert: [],
 			delete: []
+		},
+		tabs: {
+			upsert: [],
+			delete: []
 		}
 	};
 
-	const diff_canvas = writable_to_value<SyncPlanCanvas | null>(last_sync_state);
+	const diff_canvas = get(last_sync_state);
 	const actual_canvas = get_sync_canvas();
 	last_sync_state.set(actual_canvas);
 
@@ -55,6 +62,21 @@ export function plan_sync(origin: 'data' | 'position'): SyncPlan {
 		return sync_plan;
 	}
 
+	Object.keys(diff_canvas.tabs).forEach((tab_id) => {
+		if (actual_canvas.tabs[tab_id] == undefined) {
+			sync_plan.tabs.delete.push(diff_canvas?.tabs[tab_id].id ?? '');
+			return;
+		} else if (!is_array_equal(actual_canvas.tabs[tab_id].nodes, diff_canvas?.tabs[tab_id].nodes)) {
+			sync_plan.tabs.upsert.push(actual_canvas.tabs[tab_id].id);
+			return;
+		}
+	});
+	Object.keys(actual_canvas.tabs).forEach((tab_id) => {
+		if (diff_canvas?.tabs[tab_id] == undefined) {
+			sync_plan.tabs.upsert.push(actual_canvas.tabs[tab_id].id);
+			return;
+		}
+	});
 	Object.keys(diff_canvas.nodes).forEach((node_id) => {
 		if (actual_canvas.nodes[node_id] == undefined) {
 			sync_plan.nodes.delete.push(diff_canvas?.nodes[node_id].id ?? '');
@@ -110,9 +132,9 @@ export function plan_sync(origin: 'data' | 'position'): SyncPlan {
 export async function execute_plan(_plan: SyncPlan) {
 	const sync_canvas = get_sync_canvas();
 
-	const diff_time = Date.now() - (writable_to_value<number>(last_sync_timestamp) ?? 0);
+	const diff_time = Date.now() - (get(last_sync_timestamp) ?? 0);
 	if (diff_time < 1000 * 5 && _plan.origin == 'position') {
-		const accumulated_plan = writable_to_value<SyncPlan | null>(accumulated_sync_plan);
+		const accumulated_plan = get(accumulated_sync_plan);
 		if (accumulated_plan == null) {
 			accumulated_sync_plan.set(_plan);
 		} else {
@@ -130,12 +152,14 @@ export async function execute_plan(_plan: SyncPlan) {
 	last_sync_timestamp.set(Date.now());
 
 	let plan = _plan;
-	const accumulated_plan = writable_to_value<SyncPlan | null>(accumulated_sync_plan);
+	const accumulated_plan = get(accumulated_sync_plan);
 
 	if (accumulated_plan != null) {
 		plan = append_sync_plans(_plan, accumulated_plan);
 		accumulated_sync_plan.set(null);
 	}
+
+	console.log(JSON.stringify(plan));
 
 	while (plan.edges.delete.length > 0) {
 		const edge_id = plan.edges.delete.pop();
@@ -160,6 +184,17 @@ export async function execute_plan(_plan: SyncPlan) {
 		const node = sync_canvas.nodes[node_id];
 		await upsert_document('node', node);
 	}
+	while (plan.tabs.delete.length > 0) {
+		const tab_id = plan.tabs.delete.pop();
+		if (tab_id == undefined) continue;
+		await delete_document('tab', tab_id);
+	}
+	while (plan.tabs.upsert.length > 0) {
+		const tab_id = plan.tabs.upsert.pop();
+		if (tab_id == undefined) continue;
+		const tab = sync_canvas.tabs[tab_id];
+		await upsert_document('tab', tab);
+	}
 }
 
 export function append_sync_plans(a: SyncPlan, b: SyncPlan): SyncPlan {
@@ -172,6 +207,10 @@ export function append_sync_plans(a: SyncPlan, b: SyncPlan): SyncPlan {
 		edges: {
 			delete: [...new Set([...a.edges.delete, ...b.edges.delete])],
 			upsert: [...new Set([...a.edges.upsert, ...b.edges.upsert])]
+		},
+		tabs: {
+			delete: [...new Set([...a.tabs.delete, ...b.tabs.delete])],
+			upsert: [...new Set([...a.tabs.upsert, ...b.tabs.upsert])]
 		}
 	};
 }

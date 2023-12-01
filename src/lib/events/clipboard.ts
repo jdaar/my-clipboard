@@ -1,13 +1,13 @@
 import { generate_node_title } from '$lib/canvas';
 import { upload_file } from '$lib/firebase';
 import type { HandledText, WritableCanvas } from '$lib/types';
-import type { Node } from '@xyflow/svelte';
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 import { uuid } from '$lib/utils';
 import hljs from 'highlight.js';
 // @ts-expect-error Missing types and couldn't bother to write them myself
 import detect_language from 'lang-detector';
 import { is_user_logged_in_guard } from '$lib/guards/auth-guard';
+import { selected_tab, tabs } from '$lib/store/canvas-store';
 
 interface TextHandler {
 	applies(text: string): boolean;
@@ -66,12 +66,6 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 		throw new Error(is_user_logged_in.message ?? 'upload_file');
 	}
 
-	let actual_nodes: Node[] = [];
-
-	canvas.nodes.subscribe((value) => {
-		actual_nodes = value;
-	});
-
 	if (clipboard[0].types.filter((v) => v.includes('image/png')).length > 0) {
 		const id = uuid();
 		const filename = generate_node_title();
@@ -79,7 +73,7 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 		const file_blob = await clipboard[0].getType('image/png');
 		const file_download_url = await upload_file(`${filename}.png`, file_blob);
 
-		canvas.nodes.set([
+		canvas.nodes.update(actual_nodes => [
 			...actual_nodes,
 			{
 				id,
@@ -88,13 +82,24 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 				data: { title: writable(filename), source: writable(file_download_url) }
 			}
 		]);
+		tabs.update(actual_tabs => {
+			const actual_tab = get(selected_tab) ?? null;
+			if (actual_tab == null) return actual_tabs
+			return {
+				...actual_tabs,
+				[actual_tab]: {
+					...actual_tabs[actual_tab],
+					nodes: [...actual_tabs[actual_tab].nodes, id]
+				}
+			}
+		});
 	} else if (clipboard[0].types.filter((v) => v.includes('text/plain')).length > 0) {
 		const id = uuid();
 		const content = await clipboard[0].getType('text/plain');
 
 		const handled_content = await handle_text(await content.text());
 
-		canvas.nodes.set([
+		canvas.nodes.update(actual_nodes => [
 			...actual_nodes,
 			{
 				id,
@@ -107,5 +112,16 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 				}
 			}
 		]);
+		tabs.update(actual_tabs => {
+			const actual_tab = get(selected_tab) ?? null;
+			if (actual_tab == null) return actual_tabs;
+			return {
+				...actual_tabs,
+				[actual_tab]: {
+					...actual_tabs[actual_tab],
+					nodes: [...actual_tabs[actual_tab].nodes, id]
+				}
+			}
+		});
 	}
 }

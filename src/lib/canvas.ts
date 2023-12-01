@@ -1,6 +1,7 @@
-import type { Canvas, WritableCanvas } from '$lib/types';
+import type { Canvas, CanvasTab, WritableCanvas } from '$lib/types';
 import type { Edge, Node } from '@xyflow/svelte';
 import { z } from 'zod';
+import { get } from 'svelte/store';
 
 const handled_text_content = z.union([
 	z.object({
@@ -42,6 +43,13 @@ export const canvas_model = z.object({
 			source: z.string(),
 			target: z.string()
 		})
+	),
+	tabs: z.record(
+		z.object({
+			id: z.string(),
+			label: z.string(),
+			nodes: z.array(z.string())
+		})
 	)
 });
 
@@ -50,15 +58,10 @@ export function generate_node_title() {
 }
 
 export function read_canvas(canvas: WritableCanvas): Canvas {
-	let actual_nodes: Node[] = [];
-	let actual_edges: Edge[] = [];
+	let actual_nodes: Node[] = get(canvas.nodes) ?? [];
+	let actual_edges: Edge[] = get(canvas.edges) ?? [];
+	let actual_tabs = get(canvas.tabs) ?? [];
 
-	canvas.nodes.subscribe((value) => {
-		actual_nodes = value;
-	});
-	canvas.edges.subscribe((value) => {
-		actual_edges = value;
-	});
 	const processed_canvas = {
 		nodes: actual_nodes.map((node) => {
 			let title_snapshot,
@@ -97,7 +100,8 @@ export function read_canvas(canvas: WritableCanvas): Canvas {
 				}
 			};
 		}),
-		edges: actual_edges
+		edges: actual_edges,
+		tabs: actual_tabs
 	};
 	const safe_canvas = canvas_model.safeParse(processed_canvas);
 	if (safe_canvas.success) {

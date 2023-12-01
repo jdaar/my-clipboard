@@ -7,7 +7,7 @@ import {
 } from 'firebase/auth';
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
-import { edges, nodes, object_to_writable_object } from '$lib/store/canvas-store';
+import { edges, nodes, object_to_writable_object, selected_tab, tabs } from '$lib/store/canvas-store';
 import { getStorage, ref, uploadBytes, type FirebaseStorage, deleteObject } from 'firebase/storage';
 import {
 	type Firestore,
@@ -22,10 +22,11 @@ import { is_user_logged_in_guard } from './guards/auth-guard';
 import { user as userStore } from './store/user-store';
 import { execute_plan, plan_sync } from './sync';
 import { last_sync_edges, last_sync_nodes } from './store/sync-store';
-import { is_array_equal, writable_to_value } from './utils';
+import { is_array_equal } from './utils';
 import type { Edge, Node } from '@xyflow/svelte';
-import type { Writable } from 'svelte/store';
+import { get, type Writable } from 'svelte/store';
 import { post_login } from './events/user';
+import type { CanvasTab } from './types';
 
 const FIREBASE_CONFIG = {
 	apiKey: 'AIzaSyD9xXHYOaL0-uHEju31aRu2YkwqyKStXkg',
@@ -57,17 +58,17 @@ export function initialize_firebase() {
 	}
 
 	nodes.subscribe((_nodes) => {
-		const diff_nodes = writable_to_value<Node[]>(last_sync_nodes);
+		const diff_nodes = get(last_sync_nodes);
 		let origin: 'data' | 'position' | null = null;
 		if (diff_nodes?.length != _nodes.length) {
 			origin = 'data';
 		} else {
 			diff_nodes?.forEach((node, idx) => {
 				const processed_node_data = Object.values(node.data).map((v) =>
-					writable_to_value<unknown>(v as Writable<unknown>)
+					get(v as Writable<unknown>)
 				);
 				const processed_prev_node_data = Object.values(_nodes[idx].data).map((v) =>
-					writable_to_value<unknown>(v as Writable<unknown>)
+					get(v as Writable<unknown>)
 				);
 				if (!is_array_equal(processed_node_data, processed_prev_node_data)) {
 					origin = 'data';
@@ -82,12 +83,16 @@ export function initialize_firebase() {
 		execute_plan(sync_plan);
 	});
 	edges.subscribe((_edges) => {
-		const diff_edges = writable_to_value<Edge[]>(last_sync_edges);
+		const diff_edges = get(last_sync_edges);
 		if (is_array_equal(diff_edges ?? [], _edges)) return;
 
 		const sync_plan = plan_sync('data');
 		execute_plan(sync_plan);
 		last_sync_edges.set(_edges);
+	});
+	tabs.subscribe((_tabs) => {
+		const sync_plan = plan_sync('data');
+		execute_plan(sync_plan);
 	});
 
 	const auth = getAuth();
@@ -134,6 +139,7 @@ export function logout() {
 			userStore.set(null);
 			edges.set([]);
 			nodes.set([]);
+			tabs.set({});
 		})
 		.catch((error) => {
 			const errorCode = error.code;
@@ -172,7 +178,7 @@ export async function delete_file(filepath: string) {
 	await deleteObject(rootDirRef);
 }
 
-export async function upsert_document(type: 'node' | 'edge', document: Node | Edge) {
+export async function upsert_document(type: 'node' | 'edge' | 'tab', document: Node | Edge | CanvasTab) {
 	if (firebaseFirestore == null) return;
 
 	const is_user_logged_in = is_user_logged_in_guard();
@@ -184,7 +190,7 @@ export async function upsert_document(type: 'node' | 'edge', document: Node | Ed
 	await setDoc(new_doc, document);
 }
 
-export async function delete_document(type: 'node' | 'edge', document_id: string) {
+export async function delete_document(type: 'node' | 'edge' | 'tab', document_id: string) {
 	if (firebaseFirestore == null) return;
 
 	const is_user_logged_in = is_user_logged_in_guard();
@@ -219,4 +225,8 @@ export async function retrieve_canvas() {
 	const edges_snapshot = await getDocs(edges_collection);
 	const edges_list: Edge[] = edges_snapshot.docs.map((doc) => doc.data() as Edge);
 	edges.set(edges_list);
+	const tabs_collection = collection(firebaseFirestore, 'tab');
+	const tabs_snapshot = await getDocs(tabs_collection);
+	const tabs_obj = tabs_snapshot.docs.map((doc) => doc.data() as CanvasTab).reduce((acc, tab) => ({...acc, [tab.id]: tab}), {} as {[x: string]: CanvasTab});
+	tabs.set(tabs_obj);
 }

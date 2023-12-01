@@ -8,14 +8,6 @@ export function uuid(): string {
 	);
 }
 
-export function writable_to_value<T>(writable: Writable<T>): Optional<T> {
-	let value: Optional<T> = null;
-	writable.subscribe((v) => {
-		value = v;
-	});
-	return value;
-}
-
 export function is_array_equal(a: unknown[], b: unknown[]): boolean {
 	if (a === b) return true;
 	if (a == null || b == null) return false;

@@ -4,11 +4,13 @@ import type { Writable } from 'svelte/store';
 export type Canvas = {
 	nodes: Node[];
 	edges: Edge[];
+	tabs: { [x: string]: CanvasTab };
 };
 
 export type WritableCanvas = {
 	nodes: Writable<Node[]>;
 	edges: Writable<Edge[]>;
+	tabs: Writable<{ [x: string]: CanvasTab }>;
 };
 
 export type SyncPlan = {
@@ -21,11 +23,22 @@ export type SyncPlan = {
 		upsert: string[];
 		delete: string[];
 	};
+	tabs: {
+		upsert: string[];
+		delete: string[];
+	};
 };
+
+export type CanvasTab = {
+	id: string;
+	label: string;
+	nodes: string[];
+}
 
 export type SyncPlanCanvas = {
 	nodes: { [x: string]: Node };
 	edges: { [x: string]: Edge };
+	tabs: { [x: string]: CanvasTab };
 };
 
 export type Optional<T> = T | null;

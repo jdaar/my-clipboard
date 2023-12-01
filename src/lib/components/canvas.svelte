@@ -1,12 +1,13 @@
 <script lang="ts">
-	import { SvelteFlow, Background, Controls, Panel } from '@xyflow/svelte';
+	import { SvelteFlow, Background, Controls, Panel, type Node, type Edge } from '@xyflow/svelte';
 	import ImageNode from '$lib/components/flow/image-node.svelte';
 
 	import '$lib/flow-styles.css';
 	import { login, logout } from '$lib/firebase';
-	import { edges, nodes } from '$lib/store/canvas-store';
+	import { edges, nodes, selected_tab, tabs } from '$lib/store/canvas-store';
 	import { user } from '$lib/store/user-store';
 	import TextNode from './flow/text-node.svelte';
+	import { uuid } from '$lib/utils';
 
 	const nodeTypes = {
 		'image-node': ImageNode,
@@ -15,7 +16,7 @@
 </script>
 
 <section>
-	<SvelteFlow {nodes} {edges} deleteKey="Del" {nodeTypes} proOptions={{ hideAttribution: true }}>
+	<SvelteFlow nodes={nodes} edges={edges} deleteKey="Del" {nodeTypes} proOptions={{ hideAttribution: true }}>
 		<div class="offset">
 			<Panel position="top-center">
 				<aside></aside>
@@ -39,6 +40,25 @@
 					</button>
 				</aside>
 			</Panel>
+			<Panel position="bottom-right">
+				<aside></aside>
+				<aside>
+				<button class:selected_btn={$selected_tab == null} on:click={() => {$selected_tab = null;}}>all</button>
+				{#each Object.keys($tabs) as tab}
+				<button class="tab" class:selected_btn={$selected_tab == tab} on:click={() => {$selected_tab = tab;}}>{$tabs[tab].label.slice(0,7)}</button>
+				{/each}
+				<button on:click={() => {
+					const id = uuid();
+					$tabs = {...$tabs, 
+						[id]: {
+							id,
+							label: id,
+							nodes: [],
+						}
+					}
+				}}>+</button>
+				</aside>
+			</Panel>
 			<Controls></Controls>
 		</div>
 		<Background />
@@ -46,6 +66,13 @@
 </section>
 
 <style>
+	.selected_btn {
+		background-color: var(--border-color);
+		color: var(--bg-color)
+	}
+	.tab {
+		min-width: 80px;
+	}
 	.offset {
 		height: 90%;
 		width: 95%;
@@ -60,13 +87,14 @@
 
 	aside {
 		display: flex;
-		justify-content: center;
-		align-items: center;
 		height: 100%;
+    width: 100%;
+		z-index: 1;
 	}
 
 	aside > button {
 		z-index: 999;
+		font-family: 'Inter', sans-serif;
 	}
 
 	button {
