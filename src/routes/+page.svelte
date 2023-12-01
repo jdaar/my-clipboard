@@ -22,7 +22,7 @@
 				ctrl_down = true;
 			}
 			if (e.code == 'KeyV' && ctrl_down) {
-				// @ts-ignore
+				// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
 				navigator.permissions.query({ name: 'clipboard-read' }).then((result) => {
 					if (result.state === 'granted' || result.state === 'prompt') {
 						window.navigator.clipboard

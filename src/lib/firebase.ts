@@ -1,4 +1,10 @@
-import { getAuth, signInWithPopup, GoogleAuthProvider, setPersistence, browserSessionPersistence } from 'firebase/auth';
+import {
+	getAuth,
+	signInWithPopup,
+	GoogleAuthProvider,
+	setPersistence,
+	browserSessionPersistence
+} from 'firebase/auth';
 import { initializeApp, type FirebaseApp } from 'firebase/app';
 import { getAnalytics, type Analytics } from 'firebase/analytics';
 import { edges, nodes, object_to_writable_object } from '$lib/store/canvas-store';
@@ -51,7 +57,7 @@ export function initialize_firebase() {
 	}
 
 	nodes.subscribe((_nodes) => {
-		let diff_nodes = writable_to_value<Node[]>(last_sync_nodes);
+		const diff_nodes = writable_to_value<Node[]>(last_sync_nodes);
 		let origin: 'data' | 'position' | null = null;
 		if (diff_nodes?.length != _nodes.length) {
 			origin = 'data';
@@ -72,24 +78,24 @@ export function initialize_firebase() {
 		}
 		last_sync_nodes.set(_nodes);
 		if (origin == null) return;
-		let sync_plan = plan_sync(origin);
+		const sync_plan = plan_sync(origin);
 		execute_plan(sync_plan);
 	});
 	edges.subscribe((_edges) => {
-		let diff_edges = writable_to_value<Edge[]>(last_sync_edges);
+		const diff_edges = writable_to_value<Edge[]>(last_sync_edges);
 		if (is_array_equal(diff_edges ?? [], _edges)) return;
 
-		let sync_plan = plan_sync('data');
+		const sync_plan = plan_sync('data');
 		execute_plan(sync_plan);
 		last_sync_edges.set(_edges);
 	});
 
 	const auth = getAuth();
-    setPersistence(auth, browserSessionPersistence).then(() => {
-        if (auth.currentUser == null) return;
-        userStore.set(auth.currentUser);
-        post_login();
-    })
+	setPersistence(auth, browserSessionPersistence).then(() => {
+		if (auth.currentUser == null) return;
+		userStore.set(auth.currentUser);
+		post_login();
+	});
 
 	return {
 		app: firebaseInstance,
@@ -163,7 +169,7 @@ export async function delete_file(filepath: string) {
 
 	const rootDirRef = ref(firebaseStorage, filepath);
 
-    await deleteObject(rootDirRef);
+	await deleteObject(rootDirRef);
 }
 
 export async function upsert_document(type: 'node' | 'edge', document: Node | Edge) {

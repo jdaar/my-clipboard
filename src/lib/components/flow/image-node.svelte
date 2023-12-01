@@ -1,10 +1,12 @@
 <script lang="ts">
 	import { delete_file, initialize_firebase } from '$lib/firebase';
-	import { nodes, edges, delete_node } from '$lib/store/canvas-store';
+	import { delete_node } from '$lib/store/canvas-store';
 	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
 	import { getDownloadURL, ref } from 'firebase/storage';
 	import type { Writable } from 'svelte/store';
 
+	// Needed for svelte to recognize the type of the props
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Props = NodeProps;
 
 	export let data: {
@@ -38,7 +40,7 @@
 		<aside>
 			<button
 				on:click={() => {
-					// @ts-ignore
+					// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
 					window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
 						if (result.state === 'granted' || result.state === 'prompt') {
 							window.navigator.clipboard.writeText(source_web_reference);

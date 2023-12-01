@@ -15,19 +15,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Setup Node 
+      - name: Setup Node
         uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
       - name: Install dependencies
-        run: make install
+        run: yarn install
       - name: Format code
-        run: make format
+        run: yarn format
       - name: Lint code
-        run: make lint
+        run: yarn lint
       - name: Build code
-        run: make build
+        run: yarn build
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:

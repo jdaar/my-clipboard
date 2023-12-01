@@ -5,7 +5,7 @@ import type { Node } from '@xyflow/svelte';
 import { writable } from 'svelte/store';
 import { uuid } from '$lib/utils';
 import hljs from 'highlight.js';
-// @ts-ignore
+// @ts-expect-error Missing types and couldn't bother to write them myself
 import detect_language from 'lang-detector';
 import { is_user_logged_in_guard } from '$lib/guards/auth-guard';
 
@@ -38,7 +38,7 @@ const code_text_handler: TextHandler = {
 			component: 'code-text',
 			data: {
 				code: text,
-                highlighted_code: highlighted.value,
+				highlighted_code: highlighted.value,
 				language: highlighted.language
 			}
 		};
@@ -47,7 +47,7 @@ const code_text_handler: TextHandler = {
 const handlers: TextHandler[] = [code_text_handler];
 
 async function handle_text(text: string): Promise<HandledText> {
-	for (let handler of handlers) {
+	for (const handler of handlers) {
 		if (handler.applies(text)) {
 			return handler.apply(text);
 		}

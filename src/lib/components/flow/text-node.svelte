@@ -1,14 +1,14 @@
 <script lang="ts">
 	import type { HandledText, HandledTextCode, HandledTextLink, HandledTextPlain } from '$lib/types';
 	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
-	import { nodes, edges, delete_node } from '$lib/store/canvas-store';
+	import { delete_node } from '$lib/store/canvas-store';
 	import type { Writable } from 'svelte/store';
 
 	import PlainText from '../text-handler/plain-text.svelte';
 	import LinkText from '../text-handler/link-text.svelte';
 	import CodeText from '../text-handler/code-text.svelte';
-	import Canvas from '../canvas.svelte';
 
+	/* eslint-disable-next-line */
 	type $$Props = NodeProps;
 
 	export let data: {
@@ -28,7 +28,7 @@
 
 	const share_handlers = {
 		'plain-text': () => {
-			// @ts-ignore
+			// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
 			window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
 				if (result.state === 'granted' || result.state === 'prompt') {
 					window.navigator.clipboard.writeText(($content as HandledTextPlain).text ?? '');
@@ -36,7 +36,7 @@
 			});
 		},
 		'link-text': () => {
-			// @ts-ignore
+			// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
 			window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
 				if (result.state === 'granted' || result.state === 'prompt') {
 					window.navigator.clipboard.writeText(($content as HandledTextLink).link ?? '');
@@ -44,14 +44,14 @@
 			});
 		},
 		'code-text': () => {
-			// @ts-ignore
+			// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
 			window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
 				if (result.state === 'granted' || result.state === 'prompt') {
 					window.navigator.clipboard.writeText(($content as HandledTextCode).code ?? '');
 				}
 			});
 		}
-	}
+	};
 
 	export let id: string;
 
@@ -66,7 +66,7 @@
 		<aside>
 			<button
 				on:click={() => {
-					share_handlers[$handler]()
+					share_handlers[$handler]();
 				}}
 			>
 				<svg width="8" height="9" viewBox="0 0 8 9" fill="none" xmlns="http://www.w3.org/2000/svg">

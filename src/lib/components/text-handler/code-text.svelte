@@ -2,6 +2,7 @@
 	import type { HandledTextCode } from '$lib/types';
 
 	export let content: HandledTextCode;
+	/* eslint-disable */
 </script>
 
 <section>
