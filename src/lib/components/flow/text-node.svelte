@@ -170,6 +170,5 @@
 		background-color: var(--bg-color);
 		width: 100%;
 		min-height: 100%;
-		resize: both;
 	}
 </style>

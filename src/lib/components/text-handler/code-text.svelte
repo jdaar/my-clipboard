@@ -24,7 +24,7 @@
 
 	pre {
 		width: 100%;
-		max-width: 256px;
+		max-width: 512px;
 		max-height: 280px;
 	}
 

@@ -40,7 +40,7 @@ const FIREBASE_CONFIG = {
 
 let firebaseInstance: FirebaseApp | null = null;
 let firebaseAnalytics: Analytics | null = null;
-let firebaseStorage: FirebaseStorage | null = null;
+export let firebaseStorage: FirebaseStorage | null = null;
 let firebaseFirestore: Firestore | null = null;
 
 export function initialize_firebase() {

@@ -83,7 +83,7 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 			}
 		]);
 		tabs.update((actual_tabs) => {
-			const actual_tab = get(selected_tab) ?? null;
+			const actual_tab = get(selected_tab);
 			if (actual_tab == null) return actual_tabs;
 			return {
 				...actual_tabs,
@@ -113,7 +113,7 @@ export async function handle_clipboard_key(canvas: WritableCanvas, clipboard: Cl
 			}
 		]);
 		tabs.update((actual_tabs) => {
-			const actual_tab = get(selected_tab) ?? null;
+			const actual_tab = get(selected_tab);
 			if (actual_tab == null) return actual_tabs;
 			return {
 				...actual_tabs,

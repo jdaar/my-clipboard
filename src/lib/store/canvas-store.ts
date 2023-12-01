@@ -12,8 +12,11 @@ tabs.subscribe((_tabs) => {
 	if (Object.keys(_tabs).length == 0) {
 		const new_tab = create_canvas_tab();
 		tabs.set({ [new_tab.id]: new_tab });
-		selected_tab.set(new_tab.id);
 	}
+});
+
+selected_tab.subscribe((_selected_tab) => {
+	console.log(_selected_tab);
 });
 
 selected_tab.subscribe((selected_tab) => {

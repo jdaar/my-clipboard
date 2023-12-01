@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { delete_file, initialize_firebase } from '$lib/firebase';
+	import { delete_file, firebaseStorage as storage } from '$lib/firebase';
 	import { delete_node } from '$lib/store/canvas-store';
 	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
 	import { getDownloadURL, ref } from 'firebase/storage';
@@ -20,15 +20,16 @@
 
 	let source_web_reference: string;
 	$: {
-		const { storage } = initialize_firebase();
-		const storageRef = ref(storage, $source);
-		getDownloadURL(storageRef)
-			.then((url) => {
-				source_web_reference = url;
-			})
-			.catch((error) => {
-				console.log(error);
-			});
+		if (storage != null) {
+			const storageRef = ref(storage, $source);
+			getDownloadURL(storageRef)
+				.then((url) => {
+					source_web_reference = url;
+				})
+				.catch((error) => {
+					console.log(error);
+				});
+		}
 	}
 </script>
 
@@ -98,8 +99,8 @@
 	}
 
 	img {
-		max-width: 256px;
-		max-height: 256px;
+		max-width: 512px;
+		max-height: 512px;
 		resize: both;
 		margin: 0;
 		overflow: auto;
