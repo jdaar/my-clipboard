@@ -1,14 +1,15 @@
 <script lang="ts">
 	import type { HandledTextCode } from '$lib/types';
+	import type { Writable } from 'svelte/store';
 
-	export let content: HandledTextCode;
+	export let content: Writable<HandledTextCode>;
 	/* eslint-disable */
 </script>
 
 <section>
 	<div></div>
 	<pre>
-    <code class="hljs">{@html content.highlighted_code}</code>
+    <code class="hljs">{@html $content.highlighted_code}</code>
     </pre>
 	<div></div>
 </section>

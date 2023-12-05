@@ -1,61 +1,48 @@
 <script lang="ts">
-	import type { HandledText, HandledTextCode, HandledTextLink, HandledTextPlain } from '$lib/types';
-	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
 	import { delete_node, nodes } from '$lib/store/canvas-store';
-	import type { Writable } from 'svelte/store';
+	import { last_sync_nodes } from '$lib/store/sync-store';
+	import { execute_plan, plan_sync } from '$lib/sync';
+	import type { HandledTextPlain } from '$lib/types';
+	import { Handle, Position, type NodeProps } from '@xyflow/svelte';
+	import { onMount } from 'svelte';
+	import { get, type Writable } from 'svelte/store';
 
-	import PlainText from '../text-handler/plain-text.svelte';
-	import LinkText from '../text-handler/link-text.svelte';
-	import CodeText from '../text-handler/code-text.svelte';
-
-	/* eslint-disable-next-line */
+	// Needed for svelte to recognize the type of the props
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
 	type $$Props = NodeProps;
 
 	export let data: {
 		title: Writable<string>;
-		content: Writable<HandledText['data']>;
-		handler: Writable<'plain-text' | 'link-text' | 'code-text'>;
+        source: Writable<string>;
 		dimensions: Writable<{ width: number; height: number }>;
 	};
 
-	const { title, content, handler } = data;
+	const { title, source } = data;
 
-	const text_handlers = {
-		'plain-text': PlainText,
-		'link-text': LinkText,
-		'code-text': CodeText,
-	};
+    let code: string | null = null;
+    $: {
+        // @ts-expect-error MathJax is defined as a global variable in index.html
+        $source; setTimeout(() => window.MathJax.typeset(), 0)
+        const _source = $nodes.filter(node => node.id == $source);
+        if (_source.length > 0) {
+            code = get(_source[0].data['content'] as Writable<HandledTextPlain>)['text'] ?? null;
+        }
+    }
 
-	const share_handlers = {
-		'plain-text': () => {
-			// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
-			window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
-				if (result.state === 'granted' || result.state === 'prompt') {
-					window.navigator.clipboard.writeText(($content as HandledTextPlain).text ?? '');
-				}
-			});
-		},
-		'link-text': () => {
-			// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
-			window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
-				if (result.state === 'granted' || result.state === 'prompt') {
-					window.navigator.clipboard.writeText(($content as HandledTextLink).url ?? '');
-				}
-			});
-		},
-		'code-text': () => {
-			// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
-			window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
-				if (result.state === 'granted' || result.state === 'prompt') {
-					window.navigator.clipboard.writeText(($content as HandledTextCode).code ?? '');
-				}
-			});
-		}
-	};
+    $: {
+        if ($source != '') {
+            last_sync_nodes.set(get(nodes));
+            const sync_plan = plan_sync('data');
+            execute_plan(sync_plan);
+        }
+    }
+
+    onMount(() => {
+        // @ts-expect-error MathJax is defined as a global variable in index.html
+        window.MathJax.typeset();
+    })
 
 	export let id: string;
-
-	$: handler_component = text_handlers[$handler];
 </script>
 
 <section class="img-node">
@@ -66,7 +53,12 @@
 		<aside>
 			<button
 				on:click={() => {
-					share_handlers[$handler]();
+					// @ts-expect-error Only works in Chrome or browsers that support the Clipboard API
+					window.navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
+						if (result.state === 'granted' || result.state === 'prompt') {
+							window.navigator.clipboard.writeText('Test');
+						}
+					});
 				}}
 			>
 				<svg width="8" height="9" viewBox="0 0 8 9" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -91,18 +83,17 @@
 		</aside>
 		<div></div>
 	</header>
+    {#key $source}
 	<footer>
-		<div></div>
-		<svelte:component this={handler_component} content={content} />
-		<div></div>
+            {#if code}
+            {#key code}
+            $${code}$$
+            {/key}
+            {/if}
+            {$source}
 	</footer>
-	<Handle type="source" position={Position.Right} on:connect={(event) => {
-		$nodes.forEach(node => {
-			if (node.id == event.detail.connection.target && node.type == 'latex-node') {
-				node.data.source.set(event.detail.connection.source);
-			}
-		});
-	}} on:connectstart on:connectend />
+    {/key}
+	<Handle type="source" position={Position.Right} on:connect on:connectstart on:connectend />
 </section>
 
 <style>
@@ -111,7 +102,6 @@
 		height: 10px;
 		width: 10px;
 	}
-
 	header {
 		width: 100%;
 		padding-top: 5px;
@@ -176,5 +166,6 @@
 		background-color: var(--bg-color);
 		width: 100%;
 		min-height: 100%;
+		resize: both;
 	}
 </style>

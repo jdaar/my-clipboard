@@ -15,10 +15,6 @@ tabs.subscribe((_tabs) => {
 	}
 });
 
-selected_tab.subscribe((_selected_tab) => {
-	console.log(_selected_tab);
-});
-
 selected_tab.subscribe((selected_tab) => {
 	nodes.update((value) => {
 		return value.map((node) => {

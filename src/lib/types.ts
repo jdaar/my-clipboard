@@ -48,7 +48,7 @@ export type OptionalObject<T> = {
 };
 
 type _HandledTextLink = {
-	link: string;
+	url: string;
 	image: string;
 	description: string;
 	title: string;
@@ -65,6 +65,11 @@ type _HandledTextPlain = {
 };
 export type HandledTextPlain = OptionalObject<_HandledTextPlain>;
 
+export type _HandledLatexCode = {
+	code: string;
+};
+export type HandledLatexCode = OptionalObject<_HandledLatexCode>;
+
 export type HandledText =
 	| {
 			component: 'code-text';
@@ -76,5 +81,9 @@ export type HandledText =
 	  }
 	| {
 			component: 'plain-text';
+			data: HandledTextPlain;
+	  }
+	| {
+			component: 'latex-text';
 			data: HandledTextPlain;
 	  };

@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Canvas from '$lib/components/canvas.svelte';
-	import { handle_clipboard_key } from '$lib/events/clipboard';
+	import { create_node, handle_clipboard_key, handle_text } from '$lib/events/clipboard';
 	import { initialize_firebase } from '$lib/firebase';
-	import { edges, nodes } from '$lib/store/canvas-store';
+	import { edges, nodes, tabs } from '$lib/store/canvas-store';
 
 	import '$lib/styles.css';
 	import '$lib/hljs-styles.css';
@@ -27,9 +27,17 @@
 					if (result.state === 'granted' || result.state === 'prompt') {
 						window.navigator.clipboard
 							.read()
-							.then((value) => handle_clipboard_key({ nodes, edges }, value));
+							.then((value) => handle_clipboard_key({ nodes, edges, tabs }, value));
 					}
 				});
+			}
+			if (e.code == 'KeyB' && ctrl_down) {
+				handle_text('Introduce tu texto').then(value => {
+					create_node('text-node', value, { nodes, edges, tabs });
+				})
+			}
+			if (e.code == 'KeyQ' && ctrl_down) {
+				create_node('latex-node', { source: '' }, { nodes, edges, tabs });
 			}
 		});
 	});

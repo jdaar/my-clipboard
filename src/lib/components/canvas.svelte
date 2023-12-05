@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { SvelteFlow, Background, Controls, Panel } from '@xyflow/svelte';
 	import ImageNode from '$lib/components/flow/image-node.svelte';
+	import LatexNode from './flow/latex-node.svelte';
 
 	import '$lib/flow-styles.css';
 	import { login, logout } from '$lib/firebase';
@@ -11,7 +12,8 @@
 
 	const nodeTypes = {
 		'image-node': ImageNode,
-		'text-node': TextNode
+		'text-node': TextNode,
+		'latex-node': LatexNode
 	};
 </script>
 
