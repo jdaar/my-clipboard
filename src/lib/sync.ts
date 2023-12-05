@@ -160,7 +160,7 @@ export async function execute_plan(_plan: SyncPlan) {
 	}
 
 	console.log(JSON.parse(JSON.stringify(plan)));
-	console.log(sync_canvas)
+	console.log(sync_canvas);
 
 	while (plan.edges.delete.length > 0) {
 		const edge_id = plan.edges.delete.pop();

@@ -13,34 +13,35 @@
 
 	export let data: {
 		title: Writable<string>;
-        source: Writable<string>;
+		source: Writable<string>;
 		dimensions: Writable<{ width: number; height: number }>;
 	};
 
 	const { title, source } = data;
 
-    let code: string | null = null;
-    $: {
-        // @ts-expect-error MathJax is defined as a global variable in index.html
-        $source; setTimeout(() => window.MathJax.typeset(), 0)
-        const _source = $nodes.filter(node => node.id == $source);
-        if (_source.length > 0) {
-            code = get(_source[0].data['content'] as Writable<HandledTextPlain>)['text'] ?? null;
-        }
-    }
+	let code: string | null = null;
+	$: {
+		$source;
+		// @ts-expect-error MathJax is defined as a global variable in index.html
+		setTimeout(() => window.MathJax.typeset(), 0);
+		const _source = $nodes.filter((node) => node.id == $source);
+		if (_source.length > 0) {
+			code = get(_source[0].data['content'] as Writable<HandledTextPlain>)['text'] ?? null;
+		}
+	}
 
-    $: {
-        if ($source != '') {
-            last_sync_nodes.set(get(nodes));
-            const sync_plan = plan_sync('data');
-            execute_plan(sync_plan);
-        }
-    }
+	$: {
+		if ($source != '') {
+			last_sync_nodes.set(get(nodes));
+			const sync_plan = plan_sync('data');
+			execute_plan(sync_plan);
+		}
+	}
 
-    onMount(() => {
-        // @ts-expect-error MathJax is defined as a global variable in index.html
-        window.MathJax.typeset();
-    })
+	onMount(() => {
+		// @ts-expect-error MathJax is defined as a global variable in index.html
+		window.MathJax.typeset();
+	});
 
 	export let id: string;
 </script>
@@ -83,16 +84,16 @@
 		</aside>
 		<div></div>
 	</header>
-    {#key $source}
-	<footer>
-            {#if code}
-            {#key code}
-            $${code}$$
-            {/key}
-            {/if}
-            {$source}
-	</footer>
-    {/key}
+	{#key $source}
+		<footer>
+			{#if code}
+				{#key code}
+					$${code}$$
+				{/key}
+			{/if}
+			{$source}
+		</footer>
+	{/key}
 	<Handle type="source" position={Position.Right} on:connect on:connectstart on:connectend />
 </section>
 

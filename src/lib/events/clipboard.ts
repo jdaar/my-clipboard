@@ -48,10 +48,12 @@ const code_text_handler: TextHandler = {
 
 const link_text_handler: TextHandler = {
 	applies(text: string): boolean {
-		return new RegExp(/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)$/).test(text);
+		return new RegExp(
+			/^https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)$/
+		).test(text);
 	},
 	async apply(text: string): Promise<HandledText> {
-		const metadata = await retrieve_url_metadata(text)
+		const metadata = await retrieve_url_metadata(text);
 		return {
 			component: 'link-text',
 			data: metadata
@@ -75,10 +77,14 @@ export async function handle_text(text: string): Promise<HandledText> {
 	};
 }
 
-export async function create_node(type: 'image-node' | 'text-node' | 'latex-node', content: Node['data'], canvas: WritableCanvas) {
+export async function create_node(
+	type: 'image-node' | 'text-node' | 'latex-node',
+	content: Node['data'],
+	canvas: WritableCanvas
+) {
 	const id = uuid();
 	switch (type) {
-		case 'image-node': 
+		case 'image-node':
 			canvas.nodes.update((actual_nodes) => [
 				...actual_nodes,
 				{

@@ -18,9 +18,9 @@
 				<h5><a href={$content.url}>{$content.url}</a></h5>
 			</header>
 			{#if $content.description != null}
-			<main>
-				<p>{$content.description}</p>
-			</main>
+				<main>
+					<p>{$content.description}</p>
+				</main>
 			{/if}
 		</aside>
 	</section>
@@ -35,7 +35,6 @@
 
 	a {
 		color: var(--border-color);
-
 	}
 
 	a:hover {

@@ -32,9 +32,9 @@
 				});
 			}
 			if (e.code == 'KeyB' && ctrl_down) {
-				handle_text('Introduce tu texto').then(value => {
+				handle_text('Introduce tu texto').then((value) => {
 					create_node('text-node', value, { nodes, edges, tabs });
-				})
+				});
 			}
 			if (e.code == 'KeyQ' && ctrl_down) {
 				create_node('latex-node', { source: '' }, { nodes, edges, tabs });

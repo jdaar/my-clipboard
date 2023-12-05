@@ -47,10 +47,10 @@ export function read_canvas(canvas: WritableCanvas): Canvas {
 
 	const processed_canvas = {
 		nodes: actual_nodes.map((node) => {
-			const title_snapshot = get(node.data.title)
+			const title_snapshot = get(node.data.title);
 			if (node.type == 'text-node') {
-				const content_snapshot = get(node.data.content)	
-				const handler_snapshot = get(node.data.handler)	
+				const content_snapshot = get(node.data.content);
+				const handler_snapshot = get(node.data.handler);
 				return {
 					...node,
 					data: {
@@ -61,7 +61,7 @@ export function read_canvas(canvas: WritableCanvas): Canvas {
 					}
 				};
 			}
-			const source_snapshot = get(node.data.source)
+			const source_snapshot = get(node.data.source);
 			return {
 				...node,
 				data: {

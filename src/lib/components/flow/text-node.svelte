@@ -23,7 +23,7 @@
 	const text_handlers = {
 		'plain-text': PlainText,
 		'link-text': LinkText,
-		'code-text': CodeText,
+		'code-text': CodeText
 	};
 
 	const share_handlers = {
@@ -93,16 +93,22 @@
 	</header>
 	<footer>
 		<div></div>
-		<svelte:component this={handler_component} content={content} />
+		<svelte:component this={handler_component} {content} />
 		<div></div>
 	</footer>
-	<Handle type="source" position={Position.Right} on:connect={(event) => {
-		$nodes.forEach(node => {
-			if (node.id == event.detail.connection.target && node.type == 'latex-node') {
-				node.data.source.set(event.detail.connection.source);
-			}
-		});
-	}} on:connectstart on:connectend />
+	<Handle
+		type="source"
+		position={Position.Right}
+		on:connect={(event) => {
+			$nodes.forEach((node) => {
+				if (node.id == event.detail.connection.target && node.type == 'latex-node') {
+					node.data.source.set(event.detail.connection.source);
+				}
+			});
+		}}
+		on:connectstart
+		on:connectend
+	/>
 </section>
 
 <style>

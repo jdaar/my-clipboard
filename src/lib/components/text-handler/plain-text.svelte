@@ -9,11 +9,14 @@
 </script>
 
 <section>
-	<textarea bind:value={$content.text} on:change={() => {
-		last_sync_nodes.set(get(nodes));
-		const sync_plan = plan_sync('data');
-		execute_plan(sync_plan);
-	}}></textarea>
+	<textarea
+		bind:value={$content.text}
+		on:change={() => {
+			last_sync_nodes.set(get(nodes));
+			const sync_plan = plan_sync('data');
+			execute_plan(sync_plan);
+		}}
+	></textarea>
 </section>
 
 <style>
