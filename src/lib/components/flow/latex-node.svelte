@@ -84,15 +84,15 @@
 		</aside>
 		<div></div>
 	</header>
-    {#key code}
-	{#key $source}
-		<footer>
-			{#if code}
+	{#key code}
+		{#key $source}
+			<footer>
+				{#if code}
 					$${code}$$
-			{/if}
-		</footer>
+				{/if}
+			</footer>
+		{/key}
 	{/key}
-    {/key}
 	<Handle type="source" position={Position.Right} on:connect on:connectstart on:connectend />
 </section>
 
