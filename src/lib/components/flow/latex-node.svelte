@@ -91,7 +91,6 @@
 					$${code}$$
 				{/key}
 			{/if}
-			{$source}
 		</footer>
 	{/key}
 	<Handle type="source" position={Position.Right} on:connect on:connectstart on:connectend />
